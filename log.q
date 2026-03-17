@@ -1,37 +1,35 @@
-\d .log
-
-now:{.z.p}
-stdout:-1
-FIELDS:()!()
+.log.now:{.z.p}
+.log.stdout:-1
+.log.FIELDS:()!()
 
 / configuration functions
-setformat:{[fmt] if[not fmt in key render;bad_format];.conf.LOGFORMAT:fmt}
-setlevel:{[lvl] 
+.log.setformat:{[fmt] if[not fmt in key .log.render;.log.bad_format];.conf.LOGFORMAT:fmt}
+.log.setlevel:{[lvl] 
   a:({x!count[x]#(::)}l:.conf.LOGLEVELS);
-  .log,:a,k!(print@)each k:(1+l?lvl)#l;
+  .log,:a,k!(.log.print@)each k:(1+l?lvl)#l;
   .log.fatal:{.log.print[`fatal;x];exit 1};
   }
 
-usefields:{[d] FIELDS::@[d;where 100>type each d;.qi.tostr]}
+.log.usefields:{[d] .log.FIELDS:@[d;where 100>type each d;.qi.tostr]}
 
 / internal functions
-seval:{[f] $[(t:type r:f@(::))in -10 10h;r;t<0;string r;-3!r]}
-render.plain:" "sv get@
-render.logfmt:{" "sv "="sv'flip(string key x;get @[x;`msg;.j.s])}
-render.json:.j.j
+.log.seval:{[f] $[(t:type r:f@(::))in -10 10h;r;t<0;string r;-3!r]}
+.log.render.plain:" "sv get@
+.log.render.logfmt:{" "sv "="sv'flip(string key x;get @[x;`msg;.j.s])}
+.log.render.json:.j.j
 
-print:{[lvl;x]
+.log.print:{[lvl;x]
  d:();
  if[not type msg:x;
   if[(0<count d)&99<>type d:last msg;'"second arg must be a fields dict when passing a non-string arg"];
   msg:first x];
- fields:`ts`lvl`h!(string now`;string lvl;string .z.w);
- fields:fields,FIELDS,$[count d;d;()],enlist[`msg]!enlist msg;
- fields:@[fields;where 100<=type each fields;seval];
- stdout render[.conf.LOGFORMAT]fields;
+ fields:`ts`lvl`h!(string .log.now`;string lvl;string .z.w);
+ fields:fields,.log.FIELDS,$[count d;d;()],enlist[`msg]!enlist msg;
+ fields:@[fields;where 100<=type each fields;.log.seval];
+ .log.stdout .log.render[.conf.LOGFORMAT]fields;
  }
 
-setlevel .conf.LOGLEVEL;
+.log.setlevel .conf.LOGLEVEL;
 
 /
 
